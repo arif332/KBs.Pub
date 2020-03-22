@@ -1,23 +1,24 @@
-# Install: kubernetes cluster installation 
+# kubernetes cluster installation 
 
 
 ## Document History
 
 ```
-Author: Arif
 Document History:
-2020-03-20	V1 Install multi node kubernetes cluster
+2020-03-20	V1 Arif "Install multi node kubernetes clusteR"
 ```
 
 
 
 ## Introduction
 
-This document provides the procedure to install multi node kubernetes in ubuntu 18.04 lts.
+This document provides the procedure to install multi node Kubernetes cluster in Ubuntu 18.04 LTS. VMs are based in Ubuntu 18.04 LTS, and created in virtualbox with host-only adapter network option. 
 
 
 
 ## Architecture
+
+Three VMs are taken for the kube cluster setup and assigned fixed IP address from network 192.168.56.0/24 in VirtualBox.
 
 ```bash
 kube-master		192.168.56.50/24
@@ -27,7 +28,7 @@ kube-node2		192.168.56.52/24
 
 
 
-Add nat rule in hostnode for the internet access.
+As VMs are required internet access to setup necessary package so added NAT rule in host system using ipables command.
 
 ```bash
 iptables -t nat  -A POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
@@ -47,17 +48,17 @@ iptables -t nat  -A POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
 
 
 
-#### Master node
+#### Setup Master node
 
 ```bash
-hostnamectl set-hostname kube-master
-swapoff -a
+sudo hostnamectl set-hostname kube-master
+sudo swapoff -a
 
 --install docker
 sudo apt-get install docker.io -y
 sudo systemctl enable docker
 sudo systemctl start docker
-docker --version
+sudo docker --version
 
 --install kube soft
 sudo apt-get install apt-transport-https curl -y
@@ -69,8 +70,8 @@ sudo apt-get install kubeadm -y
 #sudo apt-get install kubeadm kubelet kubectl
 kubeadm version
 
---initiate kub cluster
-sudo kubeadm init --pod-network-cidr=10.244.1.0/24
+--initiate kube cluster
+sudo kubeadm init --pod-network-cidr=10.244.0.0/16
 #sudo kubeadm init --pod-network-cidr=172.168.10.0/24
 mkdir -p $HOME/.kube
 sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
@@ -86,7 +87,7 @@ sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Do
 
 
 
-#### Slave node 1
+#### Setup Slave node 1
 
 ```bash
 hostnamectl set-hostname kube-node1
@@ -115,7 +116,7 @@ kubeadm join 192.168.56.50:6443 --token 4jp7x6.gpbb4ctdk2x7ryjp \
 
 
 
-Slave node2
+#### Setup Slave node2
 
 ```bash
 hostnamectl set-hostname kube-node2
@@ -140,6 +141,56 @@ kubeadm join 192.168.56.50:6443 --token 4jp7x6.gpbb4ctdk2x7ryjp \
 
 
 
+#### Cluster Check 
+
+**Check cluster -**
+
+```bash
+kubectl get svc
+
+kubectl cluster-info
+kubectl cluster-info dump
+kubectl config view
+
+kubectl describe node kube-node2
+```
+
+
+
+**Chuster admin command -**
+
+```bash
+kubectl drain kube-node2
+kubectl uncordon kube-node2
+```
+
+
+
+**Check logs -**
+
+```bash
+kubectl logs -h
+
+--check system componet logs
+kubectl get pods --all-namespaces
+kubectl logs --namespace kube-system kube-flannel-ds-amd64-54wxq
+
+--check logs for pods
+kubectl get pods
+kubectl logs nginx-6db489d4b7-5m7dx
+kubectl logs nginx-6db489d4b7-5m7dx --all-containers=true
+
+kubectl describe pod nginx-6db489d4b7-5m7dx
+```
+
+
+
+#### Create a pod
+
+```bash
+kubectl run nginx --image=nginx
+```
+
 
 
 
@@ -149,6 +200,8 @@ kubeadm join 192.168.56.50:6443 --token 4jp7x6.gpbb4ctdk2x7ryjp \
 1. https://www.linuxtechi.com/install-configure-kubernetes-ubuntu-18-04-ubuntu-18-10/
 2. https://phoenixnap.com/kb/install-kubernetes-on-ubuntu
 3. https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+4. https://kubernetes.io/docs/reference/kubectl/cheatsheet/
+5. https://kubernetes.io/docs/reference/kubectl/conventions/
 
 
 
@@ -158,7 +211,7 @@ kubeadm join 192.168.56.50:6443 --token 4jp7x6.gpbb4ctdk2x7ryjp \
 
 
 
-master node setup log 
+**Master node setup log** 
 
 ```bash
 root@kube-master:~# kubeadm version
@@ -319,13 +372,53 @@ kube-system   kube-proxy-xl5tn                      1/1     Running            0
 kube-system   kube-scheduler-kube-master            1/1     Running            0          26m
 arif@kube-master:~$ 
 
+
+arif@kube-master:~$ kubectl get pods --all-namespaces
+NAMESPACE     NAME                                  READY   STATUS    RESTARTS   AGE
+kube-system   coredns-6955765f44-2rzll              1/1     Running   0          12m
+kube-system   coredns-6955765f44-xjlh8              1/1     Running   0          12m
+kube-system   etcd-kube-master                      1/1     Running   0          12m
+kube-system   kube-apiserver-kube-master            1/1     Running   0          12m
+kube-system   kube-controller-manager-kube-master   1/1     Running   0          12m
+kube-system   kube-flannel-ds-amd64-54wxq           1/1     Running   0          4m1s
+kube-system   kube-flannel-ds-amd64-bpk6j           1/1     Running   0          94s
+kube-system   kube-flannel-ds-amd64-pgfbz           1/1     Running   0          10m
+kube-system   kube-proxy-g58z8                      1/1     Running   0          94s
+kube-system   kube-proxy-jbmsv                      1/1     Running   0          12m
+kube-system   kube-proxy-kp92h                      1/1     Running   0          4m1s
+kube-system   kube-scheduler-kube-master            1/1     Running   0          12m
+arif@kube-master:~$ 
+
+arif@kube-master:~$ kubectl get nodes -o wide
+NAME          STATUS   ROLES    AGE     VERSION   INTERNAL-IP     EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION      CONTAINER-RUNTIME
+kube-master   Ready    master   15m     v1.17.4   192.168.56.50   <none>        Ubuntu 18.04.4 LTS   4.15.0-91-generic   docker://19.3.6
+kube-node1    Ready    <none>   6m25s   v1.17.4   192.168.56.51   <none>        Ubuntu 18.04.4 LTS   4.15.0-91-generic   docker://19.3.6
+kube-node2    Ready    <none>   3m58s   v1.17.4   192.168.56.52   <none>        Ubuntu 18.04.4 LTS   4.15.0-91-generic   docker://19.3.6
+arif@kube-master:~$ 
+
+arif@kube-master:~$ kubectl get pods --all-namespaces -o wide
+NAMESPACE     NAME                                  READY   STATUS    RESTARTS   AGE     IP              NODE          NOMINATED NODE   READINESS GATES
+default       nginx-6db489d4b7-5m7dx                1/1     Running   0          82s     10.244.1.2      kube-node1    <none>           <none>
+kube-system   coredns-6955765f44-2rzll              1/1     Running   0          15m     10.244.0.2      kube-master   <none>           <none>
+kube-system   coredns-6955765f44-xjlh8              1/1     Running   0          15m     10.244.0.3      kube-master   <none>           <none>
+kube-system   etcd-kube-master                      1/1     Running   0          16m     192.168.56.50   kube-master   <none>           <none>
+kube-system   kube-apiserver-kube-master            1/1     Running   0          16m     192.168.56.50   kube-master   <none>           <none>
+kube-system   kube-controller-manager-kube-master   1/1     Running   0          16m     192.168.56.50   kube-master   <none>           <none>
+kube-system   kube-flannel-ds-amd64-54wxq           1/1     Running   0          7m25s   192.168.56.51   kube-node1    <none>           <none>
+kube-system   kube-flannel-ds-amd64-bpk6j           1/1     Running   0          4m58s   192.168.56.52   kube-node2    <none>           <none>
+kube-system   kube-flannel-ds-amd64-pgfbz           1/1     Running   0          13m     192.168.56.50   kube-master   <none>           <none>
+kube-system   kube-proxy-g58z8                      1/1     Running   0          4m58s   192.168.56.52   kube-node2    <none>           <none>
+kube-system   kube-proxy-jbmsv                      1/1     Running   0          15m     192.168.56.50   kube-master   <none>           <none>
+kube-system   kube-proxy-kp92h                      1/1     Running   0          7m25s   192.168.56.51   kube-node1    <none>           <none>
+kube-system   kube-scheduler-kube-master            1/1     Running   0          16m     192.168.56.50   kube-master   <none>           <none>
+arif@kube-master:~$ 
 ```
 
 
 
 
 
-slave node1
+**Slave node1**
 
 ```bash
 root@kube-node1:~# kubeadm join 192.168.56.50:6443 --token 4jp7x6.gpbb4ctdk2x7ryjp \
