@@ -172,6 +172,7 @@ kubectl logs -h
 
 --check system componet logs
 kubectl get pods --all-namespaces
+kubectl get pods -A
 kubectl logs --namespace kube-system kube-flannel-ds-amd64-54wxq
 
 --check logs for pods
