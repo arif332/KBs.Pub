@@ -1,11 +1,11 @@
-# kubernetes cluster installation 
+# Kubernetes Cluster Installation 
 
 
 ## Document History
 
 ```
 Document History:
-2020-03-20	V1 Arif "Install multi node kubernetes clusteR"
+2020-03-20	V1 Arif "Install multi node kubernetes cluster"
 ```
 
 
@@ -38,7 +38,7 @@ iptables -t nat  -A POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
 
 ## Procedure
 
-/etc/hosts file setting in each node
+/etc/hosts file setting in each node so that can reach by name. 
 
 ```bash
 192.168.56.50    kube-master
@@ -143,8 +143,6 @@ kubeadm join 192.168.56.50:6443 --token 4jp7x6.gpbb4ctdk2x7ryjp \
 
 #### Cluster Check 
 
-**Check cluster -**
-
 ```bash
 kubectl get svc
 
@@ -157,7 +155,7 @@ kubectl describe node kube-node2
 
 
 
-**Chuster admin command -**
+#### Chuster admin command
 
 ```bash
 kubectl drain kube-node2
@@ -166,7 +164,7 @@ kubectl uncordon kube-node2
 
 
 
-**Check logs -**
+#### Check logs
 
 ```bash
 kubectl logs -h
