@@ -90,8 +90,8 @@ sudo kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Do
 #### Setup Slave node 1
 
 ```bash
-hostnamectl set-hostname kube-node1
-swapoff -a
+sudo hostnamectl set-hostname kube-node1
+sudo swapoff -a
 
 --install docker
 sudo apt-get install docker.io -y
@@ -119,7 +119,8 @@ kubeadm join 192.168.56.50:6443 --token 4jp7x6.gpbb4ctdk2x7ryjp \
 #### Setup Slave node2
 
 ```bash
-hostnamectl set-hostname kube-node2
+sudo hostnamectl set-hostname kube-node2
+sudo swapoff -a
 
 --install docker
 sudo apt-get install docker.io -y
