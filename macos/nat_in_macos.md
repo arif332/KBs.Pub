@@ -19,10 +19,27 @@ VirtualBox based VMs need internet access transparently. So need a NAT service i
 
 #### Final Procedure:
 
+Check current forwarding rule option (1=forwaring enable, 0=forwarding disable). 
+
+```bash
+sysctl net.inet.ip.forwarding 
+```
+
+
+
+If forwarding is not enable then enable using below command. System restart will reset value to 0.
+
+```bash
+sudo sysctl -w net.inet.ip.forwarding=1
+```
+
+
+
+Enable nat rule using pfctl -
+
 ```bash
 #check nat status
 sudo pfctl -s nat
-sudo sysctl -w net.inet.ip.forwarding=1
 
 vi /etc/pf.conf
 nat on en0 from 192.168.56.0/24 to any -> (en0)
