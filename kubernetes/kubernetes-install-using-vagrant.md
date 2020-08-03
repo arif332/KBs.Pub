@@ -62,7 +62,7 @@ iptables -t nat  -A POSTROUTING -s 192.168.56.0/24 -j MASQUERADE
 
 ## Provison node using vagrant
 
-Clone repository for provisioning VMs using [Vagrant config file](https://github.com/arif332/KBs.Pub/kubernetes/vagrant-k18/Vagrantfile) and [Scripts](https://github.com/arif332/KBs.Pub/kubernetes/vagrant-k18). 
+Clone repository for provisioning VMs using [Vagrant config file](https://github.com/arif332/KBs.Pub/blob/master/kubernetes/vagrant-k18/Vagrantfile) and [Scripts](https://github.com/arif332/KBs.Pub/blob/master/kubernetes/vagrant-k18). 
 
 ```bash
 $ git clone https://github.com/arif332/KBs.Pub
