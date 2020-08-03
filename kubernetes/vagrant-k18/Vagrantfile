@@ -1,0 +1,73 @@
+# Define on 20200803 to initialize 3 node kubernetes cluster
+# 
+
+Vagrant.configure("2") do |config|
+  #define image
+  config.vm.box = "ubuntu/bionic64"
+  config.vm.box_check_update = false
+  config.ssh.forward_agent = true
+  config.ssh.forward_x11 = true
+  #config.disksize.size = '15GB'
+  #config.vm.network "private_network", type: "dhcp"
+  #config.vm.network "private_network", ip: "192.168.56.80"
+
+
+#define k18master, provision using automatic installation script
+  config.vm.define "k18master", autostart: false do |node|
+    node.disksize.size = '10GB'
+    node.vm.box = "ubuntu/bionic64"
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "k18master"
+      vb.memory = 8192
+      vb.cpus = 2
+    end
+    node.vm.hostname = "k18master"
+    node.vm.network "private_network", ip: "192.168.56.53"  
+    node.vm.network "forwarded_port", guest: 22, host: "5322", auto_correct: true
+    node.vm.provision "shell", run: "always", inline: "route add default gw 192.168.56.1"
+    node.vm.provision :shell, :path => "setup_hosts.sh"
+    node.vm.provision :shell, :path => "k18-docker-install.sh"
+    node.vm.provision :shell, :path => "k18-kube-software-install.sh"
+  end
+
+
+#define k18worker1, provision using automatic installation script
+  config.vm.define "k18worker1", autostart: false do |node|
+    node.disksize.size = '10GB'
+    node.vm.box = "ubuntu/bionic64"
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "k18worker1"
+      vb.memory = 4096
+      vb.cpus = 2
+    end
+    node.vm.hostname = "k18worker1"
+    node.vm.network "private_network", ip: "192.168.56.54"  
+    node.vm.network "forwarded_port", guest: 22, host: "5422", auto_correct: true
+    node.vm.provision "shell", run: "always", inline: "route add default gw 192.168.56.1"
+    node.vm.provision :shell, :path => "setup_hosts.sh"
+    node.vm.provision :shell, :path => "k18-docker-install.sh"
+    node.vm.provision :shell, :path => "k18-kube-software-install.sh"
+  end
+
+
+#define k18worker2, provision using automatic installation script
+  config.vm.define "k18worker2", autostart: false do |node|
+    node.disksize.size = '10GB'
+    node.vm.box = "ubuntu/bionic64"
+    node.vm.provider "virtualbox" do |vb|
+      vb.name = "k18worker2"
+      vb.memory = 4096
+      vb.cpus = 2
+    end
+    node.vm.hostname = "k18worker2"
+    #node.vm.network "public_network", auto_config: false
+    node.vm.network "private_network", ip: "192.168.56.55"    
+    node.vm.network "forwarded_port", guest: 22, host: "5522", auto_correct: true
+    node.vm.provision "shell", run: "always", inline: "route add default gw 192.168.56.1"
+    node.vm.provision :shell, :path => "setup_hosts.sh"
+    node.vm.provision :shell, :path => "k18-docker-install.sh" 
+    node.vm.provision :shell, :path => "k18-kube-software-install.sh"
+  end
+
+
+end
