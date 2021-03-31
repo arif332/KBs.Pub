@@ -7,15 +7,20 @@
 ```
 Document History:
 2020-03-20	V1 Arif "Transparent nat service for virtualbox ip address in macos"
+2021-03-31  V2 Arif "Added prerequisite condition"
 ```
 
 
 
 ## Introduction
 
-VirtualBox based VMs need internet access transparently. So need a NAT service in host macOS. **pfctl** is used to enable NAT configuration. Enable firewall from security and privacy section. 
+VirtualBox based VMs need internet access transparently. So need a NAT service in host macOS. **pfctl** is used to enable NAT configuration. 
 
+#### Prerequisite:
 
+`Enable` firewall from Apple menu > System Preferences > Security & Privacy > Firewall section.
+
+ 
 
 #### Final Procedure:
 
@@ -40,6 +45,10 @@ Enable nat rule using pfctl -
 ```bash
 #check nat status
 sudo pfctl -s nat
+
+# Find the laptop's internet interface by ifconfig command which is connected to internet and \
+# also check interface IP address. for my case interface is en0 which is connected to internet
+# schematic view: virtual box network (192.168.56.0/24) > mac laptop internet interface (en0) > internet router 
 
 vi /etc/pf.conf
 nat on en0 from 192.168.56.0/24 to any -> (en0)
